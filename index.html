@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -7,13 +8,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <!-- MODAL SETUP AWAL -->
     <div id="setup-modal" class="modal-overlay">
         <div class="modal-box setup-box">
             <h1 class="game-title">Monopoli<br><span>Indonesia Edition</span></h1>
             <p class="subtitle">Created by Kkael</p>
-            
+
             <div class="input-group">
                 <label for="player-count">Jumlah Pemain</label>
                 <select id="player-count">
@@ -22,11 +24,11 @@
                     <option value="4">4 Pemain</option>
                 </select>
             </div>
-            
+
             <div id="dynamic-inputs" class="dynamic-inputs">
                 <!-- Input nama di-render dinamis via JS -->
             </div>
-            
+
             <button id="btn-start-game" class="btn-primary">START GAME</button>
         </div>
     </div>
@@ -35,7 +37,7 @@
     <div class="game-viewport">
         <!-- MAIN GAME LAYOUT (3-COLUMN) -->
         <div id="main-game" class="hidden">
-            
+
             <!-- KOLOM KIRI (Profil Pemain) -->
             <div class="sidebar" id="sidebar-left">
                 <div class="sidebar-header">PROFIL PEMAIN</div>
@@ -48,19 +50,20 @@
             <div class="board-wrapper">
                 <div class="board" id="board">
                     <!-- Petak Perimeter di-render JS -->
-                    
+
                     <!-- AREA TENGAH PAPAN -->
                     <div class="center-area">
                         <h1 class="center-title">MONOPOLI<br><span>INDONESIA EDITION</span></h1>
-                        
+
                         <div class="dice-wrapper">
                             <div id="dice-1" class="dice">🎲</div>
                             <div id="dice-2" class="dice">🎲</div>
                         </div>
-                        
+
                         <!-- Tombol Utama Penggerak Game -->
                         <button id="btn-roll" class="btn-primary hidden">KOCOK DADU</button>
-                        <button id="btn-sell" class="btn-secondary hidden" style="margin-top: 10px; padding: 10px; font-size: 1rem;">🏷️ JUAL ASET</button>
+                        <button id="btn-sell" class="btn-secondary hidden"
+                            style="margin-top: 10px; padding: 10px; font-size: 1rem;">🏷️ JUAL ASET</button>
 
                         <div class="deck-container">
                             <div class="deck deck-netizen">Kartu<br>Nasib Netizen</div>
@@ -70,9 +73,9 @@
                 </div>
             </div>
 
-            <!-- KOLOM KANAN (Log Transaksi Real-time) -->
+            <!-- KOLOM KANAN (Log Real-time) -->
             <div class="sidebar" id="sidebar-right">
-                <div class="sidebar-header">LOG TRANSAKSI</div>
+                <div class="sidebar-header">CATATAN PERMAINAN</div>
                 <div class="log-container scroll-container">
                     <ul id="game-log">
                         <!-- Log masuk ke sini -->
@@ -86,36 +89,71 @@
     <div id="guide-section" class="hidden">
         <h2 class="guide-title">PANDUAN & ATURAN PERMAINAN</h2>
         <div class="guide-grid">
-            <div class="guide-card">
-                <h3>📋 KETERANGAN IKON ASET</h3>
-                <ul>
-                    <li>🏠 <b>Rumah:</b> Properti Standar (Perumahan / Daerah)</li>
-                    <li>🏢 <b>Gedung:</b> Properti Mewah & Pusat Bisnis</li>
-                    <li>⚡ / 💧 <b>BUMN & PDAM:</b> Fasilitas Umum</li>
-                    <li>🏛️ <b>Landmark:</b> Cagar Budaya & Ikon Kota</li>
-                    <li>🚉 / ✈️ / 🚌 <b>Transportasi:</b> Stasiun, Bandara, Terminal</li>
-                </ul>
+            <div class="guide-card" style="grid-column: 1 / -1;">
+                <h3 style="text-align: center;">📋 KETERANGAN IKON ASET & PETAK</h3>
+                <div
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 10px;">
+                    <div>
+                        <p style="color: #E07A5F; margin-bottom: 5px;"><b>Kawasan Sultan & Bisnis</b></p>
+                        <ul>
+                            <li>🏢 / 🏙️ <b>Gedung & Kota:</b> Pusat komersial (Kemang, BSD)</li>
+                            <li>🏰 / 🏡 <b>Hunian Elite:</b> Kawasan elit (Pondok Indah, Menteng)</li>
+                            <li>👔 <b>Perkantoran:</b> Pusat pekerja (SCBD)</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <p style="color: #E07A5F; margin-bottom: 5px;"><b>Wisata & Lifestyle</b></p>
+                        <ul>
+                            <li>🏖️ / 🏔️ / 🌳 <b>Alam:</b> Pantai, Puncak, Kebun Raya</li>
+                            <li>🍜 / ☕ / 🍸 <b>Kuliner & Hiburan:</b> Senopati, Seminyak</li>
+                            <li>🛍️ / 🎨 <b>Belanja & Seni:</b> Malioboro, Jl. Riau</li>
+                            <li>🏎️ / 🛣️ <b>Jalan & Sirkuit:</b> Sentul, Margonda</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <p style="color: #E07A5F; margin-bottom: 5px;"><b>Fasilitas & Ikon Negara</b></p>
+                        <ul>
+                            <li>🏛️ <b>Landmark:</b> Tugu Kujang, IKN, Gedung Sate</li>
+                            <li>🚉 / ✈️ / 🚌 / 🚢 <b>Transportasi:</b> Stasiun, Bandara, Terminal</li>
+                            <li>⚡ / 💧 <b>BUMN:</b> PLN & PDAM</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <p style="color: #E07A5F; margin-bottom: 5px;"><b>Zona Khusus Bank</b></p>
+                        <ul>
+                            <li>💵 <b>START:</b> Cair Bansos Rp 200k</li>
+                            <li>💸 / 🧾 / 💎 <b>Pajak:</b> Tapera, PPN, Barang Mewah</li>
+                            <li>🚔 / ⚖️ <b>Hukum:</b> Sel VVIP & OTT KPK</li>
+                        </ul>
+                    </div>
+                </div>
             </div>
             <div class="guide-card">
-                <h3>💸 FITUR JUAL ASET / HIPOTEK</h3>
+                <h3 style="text-align: center;">💸 FITUR JUAL ASET / HIPOTEK</h3>
                 <ul>
                     <li><b>Beli Properti:</b> Mendarat di petak kosong = Beli aset.</li>
                     <li><b>Bayar Sewa:</b> Nginjek properti musuh = Bayar otomatis.</li>
-                    <li><b>Jual Aset (Darurat):</b> Lu bisa jual aset kapan aja, atau otomatis dipaksa jual kalau duit kurang buat bayar sewa/pajak (dihargai 50% dari modal awal).</li>
+                    <li><b>Jual Aset (Darurat):</b> Lu bisa jual aset kapan aja, atau otomatis dipaksa jual kalau duit
+                        kurang buat bayar sewa/pajak (dihargai 50% dari modal awal).</li>
                 </ul>
             </div>
             <div class="guide-card">
-                <h3>💵 CAIR BANSOS (START)</h3>
-                <p>Setiap kali pemain melintasi atau mendarat tepat di Petak 0 (START), pemain otomatis mendapatkan suntikan dana Bansos sebesar <b>Rp 200.000</b>.</p>
-                <h3 style="margin-top: 15px;">🧾 SISTEM PAJAK</h3>
-                <p>Mendarat di Petak Tapera, PPN 12%, atau Pajak Barang Mewah akan memotong saldo lu secara instan dan tanpa ampun!</p>
+                <h3 style="text-align: center;">💵 CAIR BANSOS (START)</h3>
+                <p>Setiap kali pemain melintasi atau mendarat tepat di Petak 0 (START), pemain otomatis mendapatkan
+                    suntikan dana Bansos sebesar <b>Rp 200.000</b>.</p>
             </div>
             <div class="guide-card">
-                <h3>🚔 SEL VVIP & OTT KPK</h3>
+                <h3 style="text-align: center;">🧾 SISTEM PAJAK</h3>
+                <p>Mendarat di Petak Tapera, PPN 12%, atau Pajak Barang Mewah akan memotong saldo lu secara instan dan
+                    tanpa ampun!</p>
+            </div>
+            <div class="guide-card">
+                <h3 style="text-align: center;">🚔 SEL VVIP & OTT KPK</h3>
                 <ul>
                     <li><b>Cuma Lewat:</b> Mendarat biasa di Petak 10 = Aman, besuk doang.</li>
                     <li><b>Kena OTT KPK:</b> Mendarat di Petak 30 = Langsung diseret ke Sel VVIP jadi tahanan!</li>
-                    <li><b>3 Cara Keluar:</b> (1) Bayar Denda Rp 50k, (2) Pake Kartu Orang Dalam, atau (3) Dekem (Skip 1 Giliran).</li>
+                    <li><b>3 Cara Keluar:</b> (1) Bayar Denda Rp 50k, (2) Pake Kartu Orang Dalam, atau (3) Dekem (Skip 1
+                        Giliran).</li>
                 </ul>
             </div>
         </div>
@@ -134,4 +172,5 @@
 
     <script src="game.js"></script>
 </body>
+
 </html>
