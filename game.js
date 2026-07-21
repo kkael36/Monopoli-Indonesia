@@ -20,7 +20,7 @@ function playSound(audioFile) {
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 // =========================================
-// 2. DATA KARTU SARKAS (Masing-masing 16 Kartu)
+// 2. DATA KARTU SARKAS
 // =========================================
 const netizenCards = [
     { text: "Pusat Data Nasional Kena Ransomware: Bayar perbaikan Rp 50.000", value: -50000, type: "money" },
@@ -61,14 +61,14 @@ const orangDalamCards = [
 ];
 
 // =========================================
-// 3. DATA PAPAN 40 PETAK
+// 3. DATA PAPAN & LOGIKA KOMPLEK/UPGRADE
 // =========================================
 const boardSpaces = [
     { id: 0, name: "START\n(Cair Bansos +Rp 200k)", type: "start", price: 0, rent: 0, grid: "11/11/12/12", corner: true, icon: "💵" },
     { id: 1, name: "Tugu Kujang\nBogor", type: "property", price: 60000, rent: 10000, color: "#8B4513", grid: "11/10/12/11", icon: "🏛️" },
     { id: 2, name: "Nasib Netizen", type: "card_netizen", price: 0, rent: 0, grid: "11/9/12/10" },
     { id: 3, name: "Alun-Alun\nBekasi", type: "property", price: 80000, rent: 15000, color: "#8B4513", grid: "11/8/12/9", icon: "🏙️" },
-    { id: 4, name: "Pajak Tapera", type: "tax", price: 100000, rent: 0, grid: "11/7/12/8", icon: "💸" },
+    { id: 4, name: "Bayar Wifi", type: "tax", price: 100000, rent: 0, grid: "11/7/12/8", icon: "💸" },
     { id: 5, name: "Stasiun KRL\nManggarai", type: "property", price: 200000, rent: 40000, color: "#666", grid: "11/6/12/7", icon: "🚉" },
     { id: 6, name: "Margonda\nDepok", type: "property", price: 100000, rent: 20000, color: "#87CEEB", grid: "11/5/12/6", icon: "🛣️" },
     { id: 7, name: "Orang Dalam", type: "card_dalam", price: 0, rent: 0, grid: "11/4/12/5" },
@@ -109,8 +109,70 @@ const boardSpaces = [
     { id: 39, name: "BSD City\nTangerang", type: "property", price: 400000, rent: 100000, color: "#1F618D", grid: "10/11/11/12", icon: "🏙️" }
 ];
 
+const colorSets = [
+    [1, 3], [6, 8, 9], [11, 13, 14], [16, 18, 19],
+    [21, 23, 24], [26, 27, 29], [32, 34], [37, 39],
+    [12, 28], [5, 15, 25, 35]
+];
+
 const playerColors = ["#D62828", "#003049", "#FCBF49", "#386641"];
-let gameState = { players: [], turn: 0, properties: Array(40).fill(null), isRolling: false };
+
+let gameState = { 
+    players: [], 
+    turn: 0, 
+    properties: Array(40).fill(null), 
+    propertyLevels: Array(40).fill(0), // Menyimpan level upgrade properti (0-3)
+    isRolling: false 
+};
+
+function getFinalRent(spaceId, ownerId) {
+    let space = boardSpaces[spaceId];
+    let baseRent = space.rent;
+    let level = gameState.propertyLevels[spaceId] || 0;
+    
+    // Cek Komplek Warna
+    let multiplier = 1;
+    for (let set of colorSets) {
+        if (set.includes(spaceId)) {
+            const ownsAll = set.every(id => gameState.properties[id] === ownerId);
+            if (ownsAll) multiplier = 2;
+            break;
+        }
+    }
+    
+    // Formula: (Base Rent * (1 + (level * 1.5))) * Multiplier
+    return (baseRent * (1 + (level * 1.5))) * multiplier;
+}
+
+// Update UI Petak & Bintang Level
+function updateSpaceVisuals(spaceId) {
+    const spaceEl = document.getElementById(`space-${spaceId}`);
+    let ownerId = gameState.properties[spaceId];
+    let level = gameState.propertyLevels[spaceId] || 0;
+    let space = boardSpaces[spaceId];
+    
+    let oldIcon = spaceEl.querySelector('.owner-icon');
+    if (oldIcon) oldIcon.remove();
+    
+    let header = document.getElementById(`header-${spaceId}`);
+    
+    if (ownerId !== null) {
+        const owner = gameState.players[ownerId];
+        if (header) header.style.backgroundColor = owner.color;
+        
+        const iconEl = document.createElement("div");
+        iconEl.className = "owner-icon";
+        
+        let stars = "";
+        for (let i = 0; i < level; i++) stars += "⭐";
+        
+        iconEl.innerHTML = `<span>${space.icon || "🏠"}</span>${level > 0 ? `<div style="font-size:0.4rem; margin-top:2px; letter-spacing:-1px;">${stars}</div>` : ""}`;
+        spaceEl.appendChild(iconEl);
+    } else {
+        if (header) header.style.backgroundColor = space.color;
+    }
+}
+
 
 // =========================================
 // 4. SETUP & INITIALIZATION
@@ -155,7 +217,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         initGameUI();
         
-        // Modal Notifikasi Awal + Log
         showModalAsync("🎮 GAME ON!", "Permainan dimulai! Selamat berjuang di Indonesia 😹", "GASKEUN!").then(() => {
             logAction("🎮 Permainan dimulai! Selamat berjuang di Indonesia 😹");
             prepareTurn();
@@ -200,7 +261,12 @@ function updatePlayersUI() {
         div.style.color = p.color;
         if(!p.active) div.style.opacity = "0.3";
 
-        const propNames = p.props.length ? p.props.map(id => boardSpaces[id].name.replace(/\n/g, ' ')).join(', ') : '-';
+        const propNames = p.props.length ? p.props.map(id => {
+            let lvl = gameState.propertyLevels[id];
+            let name = boardSpaces[id].name.replace(/\n/g, ' ');
+            return lvl > 0 ? `${name} (Lv${lvl})` : name;
+        }).join(', ') : '-';
+        
         div.innerHTML = `
             <h3><div class="dot" style="background:${p.color}; border-color:${p.color}; width:12px; height:12px; border-width:2px;"></div> ${p.name}</h3>
             <div class="saldo">Rp ${p.bal.toLocaleString('id-ID')}</div>
@@ -227,19 +293,19 @@ function renderAllPawns() {
 }
 
 // =========================================
-// 5. FITUR JUAL ASET (DARURAT / BEBAS)
+// 5. FITUR PASAR ASET (JUAL, NEGO, UPGRADE)
 // =========================================
 function openSellMarket(p, debtAmount = 0, ownerToPay = null, successMsg = null) {
     if (p.props.length === 0) {
         if(debtAmount > 0) declareBankrupt(p, ownerToPay);
-        else showModal("Pasar Aset", "Lu belum punya aset apa-apa buat dijual bro!", [{ text: "Tutup", action: () => {} }]);
+        else showModal("Pasar Aset", "Lu belum punya aset apa-apa buat diurus bro!", [{ text: "Tutup", action: () => {} }]);
         return;
     }
 
     const modal = document.getElementById("action-modal");
-    document.getElementById("modal-title").innerText = "Pasar Aset (Hipotek)";
+    document.getElementById("modal-title").innerText = "Pasar Aset & Upgrade";
     
-    let descHtml = debtAmount > 0 ? `<p style="color:#D62828; font-weight:900;">Duit lu kurang Rp ${(debtAmount - p.bal).toLocaleString('id-ID')} buat bayar tagihan!</p>` : `<p>Pilih aset yang mau dijual (50% dari harga awal).</p>`;
+    let descHtml = debtAmount > 0 ? `<p style="color:#D62828; font-weight:900;">Duit lu kurang Rp ${(debtAmount - p.bal).toLocaleString('id-ID')} buat bayar tagihan!</p>` : `<p>Pilih aset yang mau dijual atau di-upgrade.</p>`;
     descHtml += `<div class="sell-list" id="sell-list-container"></div>`;
     document.getElementById("modal-desc").innerHTML = descHtml;
 
@@ -248,32 +314,102 @@ function openSellMarket(p, debtAmount = 0, ownerToPay = null, successMsg = null)
         listContainer.innerHTML = "";
         p.props.forEach(propId => {
             const space = boardSpaces[propId];
-            const sellPrice = space.price * 0.5;
+            const level = gameState.propertyLevels[propId];
+            const upgCost = space.price * 0.5;
+            const sellPrice = space.price * 0.5; // Jual ke bank dapet 50% modal awal, level hangus
+            
             const item = document.createElement("div");
             item.className = "sell-item";
-            item.innerHTML = `<span><b>${space.name.replace(/\n/g, ' ')}</b></span> <span style="color:#386641; font-weight:900;">+Rp ${sellPrice.toLocaleString('id-ID')}</span>`;
+            item.innerHTML = `<span><b>${space.name.replace(/\n/g, ' ')}</b> ${level > 0 ? '(Lv '+level+')' : ''}</span> <span style="color:#386641; font-weight:900;">Opsi</span>`;
+            
             item.onclick = () => {
-                p.bal += sellPrice;
-                p.props = p.props.filter(id => id !== propId);
-                gameState.properties[propId] = null;
+                let buttons = [
+                    { text: `Jual ke Bank (Rp ${sellPrice.toLocaleString('id-ID')})`, action: () => {
+                        p.bal += sellPrice;
+                        p.props = p.props.filter(id => id !== propId);
+                        gameState.properties[propId] = null;
+                        gameState.propertyLevels[propId] = 0; // Level hangus
+                        
+                        playSound(sfx.buy);
+                        logAction(`🏷️ ${p.name} menjual ${space.name.replace(/\n/g, ' ')} ke Bank seharga Rp ${sellPrice.toLocaleString('id-ID')}.`);
+                        updateSpaceVisuals(propId);
+                        updatePlayersUI();
+                        
+                        if (p.props.length === 0) {
+                            if (debtAmount > 0 && p.bal < debtAmount) declareBankrupt(p, ownerToPay);
+                            else { modal.classList.add("hidden"); if(debtAmount > 0) checkAndPay(p, debtAmount, ownerToPay, successMsg); }
+                        } else {
+                            openSellMarket(p, debtAmount, ownerToPay, successMsg); 
+                        }
+                    }},
+                    { text: "Nego ke Pemain", action: () => {
+                        let targetOptions = gameState.players.filter(t => t.active && t.id !== p.id).map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+                        if(!targetOptions) {
+                            showModal("Gagal", "Gak ada pemain lain yang aktif buat dinego!", [{ text: "Balik", action: () => openSellMarket(p, debtAmount, ownerToPay, successMsg) }]);
+                            return;
+                        }
+                        
+                        let html = `
+                            <div style="margin: 15px 0; text-align: left;">
+                                <label style="font-weight:900;">Pilih Pembeli:</label>
+                                <select id="trade-target" style="width:100%; padding: 8px; border:3px solid #5C4033; border-radius:8px;">${targetOptions}</select>
+                                <label style="font-weight:900; margin-top: 10px; display:block;">Harga Nego (Rp):</label>
+                                <input type="number" id="trade-price" value="${space.price}" style="width:100%; padding: 8px; border:3px solid #5C4033; border-radius:8px;">
+                            </div>
+                        `;
+                        showModal("Nego Aset", html, [
+                            { text: "Kirim Tawaran", action: () => {
+                                let targetId = parseInt(document.getElementById("trade-target").value);
+                                let price = parseInt(document.getElementById("trade-price").value);
+                                if(isNaN(price) || price < 0) price = 0;
+                                let targetPlayer = gameState.players[targetId];
+                                
+                                showModal("Tawaran Masuk!", `<b>${targetPlayer.name}</b>, lu ditawarin beli <b>${space.name.replace(/\n/g, ' ')} (Lv ${level})</b> dari ${p.name} seharga Rp ${price.toLocaleString('id-ID')}. Deal?`, [
+                                    { text: "Deal! Beli", action: () => {
+                                        if (targetPlayer.bal >= price) {
+                                            targetPlayer.bal -= price;
+                                            p.bal += price;
+                                            p.props = p.props.filter(id => id !== space.id);
+                                            targetPlayer.props.push(space.id);
+                                            gameState.properties[space.id] = targetPlayer.id;
+                                            // Level ditransfer utuh saat trade!
+                                            
+                                            updateSpaceVisuals(space.id);
+                                            playSound(sfx.buy);
+                                            logAction(`🤝 TRADE DEAL! ${targetPlayer.name} mengakuisisi ${space.name.replace(/\n/g, ' ')} dari ${p.name} seharga Rp ${price.toLocaleString('id-ID')}.`);
+                                            updatePlayersUI();
+                                            openSellMarket(p, debtAmount, ownerToPay, successMsg);
+                                        } else {
+                                            showModal("Duit Kurang!", "Duit lu gak cukup bos buat beli ini!", [{ text: "Balik", action: () => openSellMarket(p, debtAmount, ownerToPay, successMsg) }]);
+                                        }
+                                    }},
+                                    { text: "Tolak", secondary: true, action: () => {
+                                        logAction(`❌ ${targetPlayer.name} menolak tawaran aset dari ${p.name}.`);
+                                        openSellMarket(p, debtAmount, ownerToPay, successMsg);
+                                    }}
+                                ]);
+                            }},
+                            { text: "Batal", secondary: true, action: () => openSellMarket(p, debtAmount, ownerToPay, successMsg) }
+                        ]);
+                    }}
+                ];
                 
-                // MURNI REVERT BACKGROUND HEADER SAJA, TANPA HAPUS BOX-SHADOW (karena emang gak ada)
-                const spaceEl = document.getElementById(`space-${propId}`);
-                document.getElementById(`header-${propId}`).style.backgroundColor = space.color;
-                const icon = spaceEl.querySelector('.owner-icon');
-                if (icon) icon.remove();
-                
-                playSound(sfx.buy);
-                logAction(`🏷️ ${p.name} menjual ${space.name.replace(/\n/g, ' ')} ke Bank seharga Rp ${sellPrice.toLocaleString('id-ID')}.`);
-                updatePlayersUI();
-                
-                if (p.props.length === 0) {
-                    if (debtAmount > 0 && p.bal < debtAmount) declareBankrupt(p, ownerToPay);
-                    else { modal.classList.add("hidden"); if(debtAmount > 0) checkAndPay(p, debtAmount, ownerToPay, successMsg); }
-                } else {
-                    renderSellList(); 
-                    refreshActions();
+                // Cuma bisa upgrade kalau lagi gak punya hutang dan level belum max
+                if (level < 3 && p.bal >= upgCost && debtAmount === 0) {
+                    buttons.push({ text: `Upgrade Bintang (Rp ${(upgCost/1000)}k)`, action: () => {
+                        p.bal -= upgCost;
+                        gameState.propertyLevels[propId]++;
+                        playSound(sfx.buy);
+                        updateSpaceVisuals(propId);
+                        logAction(`⬆️ ${p.name} meng-upgrade ${space.name.replace(/\n/g, ' ')} ke Level ${gameState.propertyLevels[propId]}!`);
+                        updatePlayersUI();
+                        openSellMarket(p, debtAmount, ownerToPay, successMsg);
+                    }});
                 }
+
+                buttons.push({ text: "Kembali", secondary: true, action: () => openSellMarket(p, debtAmount, ownerToPay, successMsg) });
+                
+                showModal("Pilih Aksi Properti", `Mau diapain nih <b>${space.name.replace(/\n/g, ' ')}</b>? (Level saat ini: ${level}/3)`, buttons);
             };
             listContainer.appendChild(item);
         });
@@ -314,7 +450,7 @@ function openSellMarket(p, debtAmount = 0, ownerToPay = null, successMsg = null)
 function checkAndPay(p, amount, ownerToPay, successMsg) {
     if (p.bal >= amount) {
         p.bal -= amount;
-        if (ownerToPay) ownerToPay.bal += amount;
+        if (ownerToPay) ownerToPay.bal += amount; // Kalo pajak (null), hangus ke Bank System
         playSound(sfx.pay);
         finishAction(successMsg);
     } else {
@@ -333,10 +469,8 @@ async function declareBankrupt(p, ownerToPay) {
 
     p.props.forEach(id => {
         gameState.properties[id] = null;
-        const spaceEl = document.getElementById(`space-${id}`);
-        document.getElementById(`header-${id}`).style.backgroundColor = boardSpaces[id].color;
-        const iconEl = spaceEl.querySelector('.owner-icon');
-        if(iconEl) iconEl.remove();
+        gameState.propertyLevels[id] = 0; // Hapus semua level
+        updateSpaceVisuals(id);
     });
     p.props = [];
     renderAllPawns();
@@ -398,7 +532,7 @@ function prepareTurn() {
 function handleJailEscapeRoutine(p, btnRoll) {
     const buttons = [
         { text: "Bayar Denda (Rp 50rb)", action: () => {
-            checkAndPay(p, 50000, null, `💸 ${p.name} bayar denda KPK Rp 50.000. Bebas!`);
+            checkAndPay(p, 50000, null, `💸 ${p.name} bayar denda KPK Rp 50.000 ke Bank. Bebas!`);
             p.inJail = false;
             btnRoll.disabled = false;
             document.getElementById("btn-sell").classList.remove("hidden");
@@ -495,6 +629,64 @@ async function movePawnSequential(p, steps) {
 }
 
 // =========================================
+// FITUR LELANG DISKON
+// =========================================
+function startDiscountAuction(space) {
+    let currentBid = space.price * 0.7; // Harga awal lelang = 70% harga asli (Diskon 30%)
+    let highestBidder = null;
+
+    function renderAuction() {
+        let activePlayers = gameState.players.filter(p => p.active);
+
+        let descHtml = `<p>Lelang Diskon Properti: <b>${space.name.replace(/\n/g, ' ')}</b></p>`;
+        descHtml += `<p style="font-size:0.85rem; color:#666;">Harga Asli: Rp ${space.price.toLocaleString('id-ID')}</p>`;
+        descHtml += `<h2 style="color:#D62828; margin: 15px 0;">Bid: Rp ${currentBid.toLocaleString('id-ID')}</h2>`;
+
+        if(highestBidder) {
+            descHtml += `<p style="margin-bottom:15px;">Penawar Tertinggi: <b>${highestBidder.name}</b></p>`;
+        } else {
+            descHtml += `<p style="margin-bottom:15px; color:#386641; font-weight:bold;">🔥 Dibuka dari harga diskon 30%!</p>`;
+        }
+
+        let buttons = [];
+
+        activePlayers.forEach(p => {
+            // Kalau belum ada yang bid, harganya tetap base diskon (70%). Kalau udah ada, nambah kelipatan 10k.
+            let bidAmount = highestBidder ? currentBid + 10000 : currentBid;
+
+            if (p.bal >= bidAmount && highestBidder?.id !== p.id) {
+                buttons.push({ text: `${p.name} Bid (Rp ${bidAmount/1000}k)`, keepOpen: true, action: () => {
+                    currentBid = bidAmount;
+                    highestBidder = p;
+                    playSound(sfx.step);
+                    renderAuction();
+                }});
+            }
+        });
+
+        buttons.push({ text: highestBidder ? "Bungkus Lelang!" : "Batal (Tetap Kosong)", secondary: true, keepOpen: false, action: () => {
+            if (highestBidder) {
+                highestBidder.bal -= currentBid;
+                highestBidder.props.push(space.id);
+                gameState.properties[space.id] = highestBidder.id;
+                gameState.propertyLevels[space.id] = 0; // Pastikan level 0 (gak bawa level)
+
+                updateSpaceVisuals(space.id);
+                playSound(sfx.buy);
+                finishAction(`🔨 LELANG: ${highestBidder.name} memenangkan ${space.name.replace(/\n/g, ' ')} seharga Rp ${currentBid.toLocaleString('id-ID')}!`);
+            } else {
+                finishAction(`Lelang dibatalkan, properti ${space.name.replace(/\n/g, ' ')} tetap kosong.`);
+            }
+        }});
+
+        showModal("Lelang Diskon!", descHtml, buttons);
+    }
+
+    renderAuction();
+}
+
+
+// =========================================
 // 8. AKSI PETAK & KEPEMILIKAN
 // =========================================
 function executeSpaceAction(p, space) {
@@ -503,6 +695,7 @@ function executeSpaceAction(p, space) {
     if (space.type === "property") {
         const ownerId = gameState.properties[p.pos];
         
+        // Lapak Kosong (Memicu Lelang Diskon kalau di-skip)
         if (ownerId === null) {
             if (p.bal >= space.price) {
                 showModal("Lapak Kosong!", `Beli <b>${spaceName}</b>?<br>Harga: Rp ${space.price.toLocaleString('id-ID')}`, [
@@ -510,43 +703,72 @@ function executeSpaceAction(p, space) {
                         p.bal -= space.price; 
                         p.props.push(p.pos);
                         gameState.properties[p.pos] = p.id;
-                        
-                        // MURNI UBAH BACKGROUND HEADER PETAK (Sesuai emulasi desain awal lu)
-                        document.getElementById(`header-${p.pos}`).style.backgroundColor = p.color;
-                        
-                        const iconEl = document.createElement("div");
-                        iconEl.className = "owner-icon";
-                        iconEl.innerText = space.icon || "🏠";
-                        document.getElementById(`space-${p.pos}`).appendChild(iconEl);
-
+                        updateSpaceVisuals(p.pos);
                         playSound(sfx.buy);
                         finishAction(`🏠 ${p.name} resmi mengakuisisi ${spaceName}.`);
                     }},
-                    { text: "Skip", secondary: true, action: () => finishAction(`Lewat doang di ${spaceName}.`) }
+                    { text: "Skip (Lelang)", secondary: true, action: () => {
+                        // Buka Lelang kalau di-skip
+                        startDiscountAuction(space);
+                    }}
                 ]);
             } else {
-                finishAction(`💸 Duit ${p.name} gak cukup buat beli ${spaceName}.`);
+                showModal("Duit Kurang!", `Duit lu gak cukup buat beli <b>${spaceName}</b>. Aset ini akan otomatis masuk Lelang Diskon buat diperebutkan!`, [
+                    { text: "Buka Lelang", action: () => startDiscountAuction(space) }
+                ]);
             }
         } 
+        // Punya Orang Lain
         else if (ownerId !== p.id) {
             const owner = gameState.players[ownerId];
             if (owner.inJail || !owner.active) {
                 finishAction(`Nginjek lapak ${owner.name}, tapi dia lagi di Sel/Apes. Bebas Sewa!`);
             } else {
-                checkAndPay(p, space.rent, owner, `💸 ${p.name} bayar sewa Rp ${space.rent.toLocaleString('id-ID')} ke ${owner.name}.`);
+                let finalRent = getFinalRent(space.id, owner.id);
+                let level = gameState.propertyLevels[space.id];
+                
+                let msgLog = `💸 ${p.name} bayar sewa (Lv ${level}) Rp ${finalRent.toLocaleString('id-ID')} ke ${owner.name}.`;
+                
+                // Cek apakah dia pegang komplek full buat message custom
+                let holdsColorSet = colorSets.find(s => s.includes(space.id))?.every(id => gameState.properties[id] === owner.id);
+                if (holdsColorSet) {
+                    msgLog = `🎨 KOMPLEK WARNA! ${p.name} kena tarif 2x lipat (Lv ${level}) jadi Rp ${finalRent.toLocaleString('id-ID')} ke ${owner.name}.`;
+                }
+                
+                checkAndPay(p, finalRent, owner, msgLog);
             }
-        } else {
-            finishAction(`Santai sejenak di aset sendiri (${spaceName}).`);
+        } 
+        // Punya Sendiri (Bisa Upgrade)
+        else {
+            let level = gameState.propertyLevels[p.pos];
+            let upgCost = space.price * 0.5;
+            
+            if (level < 3 && p.bal >= upgCost) {
+                showModal("Lapak Sendiri", `Lu lagi istirahat di ${spaceName} (Lv ${level}). Mau sekalian Upgrade Bintang biar sewa makin meroket?<br>Biaya Upgrade: Rp ${upgCost.toLocaleString('id-ID')}`, [
+                    { text: `Upgrade (Rp ${upgCost/1000}k)`, action: () => {
+                        p.bal -= upgCost;
+                        gameState.propertyLevels[p.pos]++;
+                        playSound(sfx.buy);
+                        updateSpaceVisuals(p.pos);
+                        finishAction(`⬆️ ${p.name} meng-upgrade ${spaceName} ke Level ${gameState.propertyLevels[p.pos]}!`);
+                    }},
+                    { text: "Santai Aja", secondary: true, action: () => finishAction(`Santai sejenak di aset sendiri (${spaceName}).`) }
+                ]);
+            } else {
+                finishAction(`Santai sejenak di aset sendiri (${spaceName}).`);
+            }
         }
     } 
+    // Pajak Murni (Bank Sink)
     else if (space.type === "tax") {
         if (p.bebasPajak) {
             p.bebasPajak = false;
             finishAction(`🛡️ ${p.name} lolos dari tagihan pajak pakai Orang Dalam!`);
         } else {
-            checkAndPay(p, space.price, null, `⚖️ ${p.name} menunaikan pajak Rp ${space.price.toLocaleString('id-ID')}.`);
+            checkAndPay(p, space.price, null, `⚖️ ${p.name} setor ke Kas Negara: ${spaceName} Rp ${space.price.toLocaleString('id-ID')}. (Hangus)`);
         }
     }
+    // OTT KPK
     else if (space.type === "goto_jail") {
         playSound(sfx.jail);
         showModal("🚨 Kena OTT KPK! 🚨", "Aset lu diperiksa! Langsung diseret ke Sel VVIP tanpa ampun.", [
@@ -558,6 +780,7 @@ function executeSpaceAction(p, space) {
             }}
         ]);
     }
+    // Kartu Kesempatan
     else if (space.type === "card_netizen" || space.type === "card_dalam") {
         playSound(sfx.card);
         const isNetizen = space.type === "card_netizen";
@@ -597,6 +820,7 @@ function executeSpaceAction(p, space) {
             }}
         ]);
     } 
+    // Bebas (Start, Jail Visit, Rest Area)
     else {
         if (space.id === 10) finishAction(`👀 ${p.name} cuma mampir besuk tahanan di Sel VVIP.`);
         else finishAction(`☕ ${p.name} mendarat aman di ${spaceName}.`);
@@ -650,7 +874,7 @@ function showModal(title, desc, buttons) {
         btn.innerText = b.text;
         btn.className = b.secondary ? "btn-secondary" : "btn-primary";
         btn.onclick = () => {
-            modal.classList.add("hidden");
+            if (!b.keepOpen) modal.classList.add("hidden");
             if (b.action) b.action();
         };
         actions.appendChild(btn);
