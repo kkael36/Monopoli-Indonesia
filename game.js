@@ -211,6 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
         
+        document.querySelector('.global-top-actions').classList.add('hidden');
         document.getElementById("setup-modal").classList.add("hidden");
         document.getElementById("main-game").classList.remove("hidden");
         document.getElementById("guide-section").classList.remove("hidden");
