@@ -896,3 +896,9 @@ function logAction(msg) {
     logBox.appendChild(li);
     logBox.parentElement.scrollTop = logBox.parentElement.scrollHeight;
 }
+
+// --- TAMBAHAN: FUNGSI DOWNLOAD GAME ---
+function downloadGame(e) {
+    e.preventDefault();
+    alert("Fitur unduhan sedang disiapkan! Lu bisa bookmark atau install web ini via PWA / Add to Home Screen browser.");
+}
