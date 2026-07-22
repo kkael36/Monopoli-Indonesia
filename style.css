@@ -347,12 +347,18 @@ button:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow
 
 /* === TOMBOL FLOATING POJOK KANAN ATAS LAYAR === */
 .global-top-actions {
-    position: fixed;
-    top: 15px;
-    right: 15px;
+    position: fixed !important;
+    top: 15px !important;
+    right: 15px !important;
+    left: auto !important;
     display: flex;
+    flex-direction: row;
     gap: 10px;
-    z-index: 10000;
+    z-index: 999999 !important;
+    
+    /* TRIK SAKTI ANTI MENDEM DI HP */
+    transform: translateZ(9999px) !important; 
+    -webkit-transform: translateZ(9999px) !important;
 }
 
 .btn-global {
@@ -367,4 +373,25 @@ button:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow
     text-decoration: none;
     box-sizing: border-box;
     border-radius: 10px !important;
+    white-space: nowrap !important;
+    box-shadow: 0 4px 0 #3E2723 !important;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+/* Khusus layar HP */
+@media (max-width: 480px) {
+    .global-top-actions {
+        top: 15px !important;
+        right: 15px !important;
+        left: auto !important;
+        z-index: 999999 !important;
+        
+        /* Pastiin trik ini juga jalan di mode HP */
+        transform: translateZ(9999px) !important; 
+        -webkit-transform: translateZ(9999px) !important;
+    }
+    .btn-global {
+        padding: 6px 10px !important;
+        font-size: 0.75rem !important;
+    }
 }
