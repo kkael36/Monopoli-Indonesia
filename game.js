@@ -14,7 +14,7 @@ function playSound(audioFile) {
     try {
         const audio = new Audio(audioFile);
         audio.play().catch(err => console.warn(`[Safe Audio] Gagal play ${audioFile}.`));
-    } catch(e) { console.warn(`[Safe Audio] Exception:`, e); }
+    } catch (e) { console.warn(`[Safe Audio] Exception:`, e); }
 }
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -75,7 +75,7 @@ const boardSpaces = [
     { id: 8, name: "Suryakencana\nBogor", type: "property", price: 120000, rent: 25000, color: "#87CEEB", grid: "11/3/12/4", icon: "🍜" },
     { id: 9, name: "Puncak Pass\nBogor", type: "property", price: 120000, rent: 25000, color: "#87CEEB", grid: "11/2/12/3", icon: "🏔️" },
     { id: 10, name: "Sel VVIP", type: "jail", price: 0, rent: 0, grid: "11/1/12/2", corner: true, icon: "🚔" },
-    
+
     { id: 11, name: "Jalan Riau\nBandung", type: "property", price: 140000, rent: 30000, color: "#FF69B4", grid: "10/1/11/2", icon: "🛍️" },
     { id: 12, name: "Perumda Air\nPDAM", type: "property", price: 150000, rent: 30000, color: "#2E8B57", grid: "9/1/10/2", icon: "💧" },
     { id: 13, name: "Gedung Sate\nBandung", type: "property", price: 140000, rent: 30000, color: "#FF69B4", grid: "8/1/9/2", icon: "🏛️" },
@@ -86,7 +86,7 @@ const boardSpaces = [
     { id: 18, name: "Tanah Lot\nBali", type: "property", price: 180000, rent: 40000, color: "#FFA500", grid: "3/1/4/2", icon: "🌅" },
     { id: 19, name: "Seminyak\nBali", type: "property", price: 200000, rent: 45000, color: "#FFA500", grid: "2/1/3/2", icon: "🍸" },
     { id: 20, name: "Rest Area\nTol", type: "free", price: 0, rent: 0, grid: "1/1/2/2", corner: true, icon: "🅿️" },
-    
+
     { id: 21, name: "Jalan Malioboro\nJogja", type: "property", price: 220000, rent: 50000, color: "#D62828", grid: "1/2/2/3", icon: "🎨" },
     { id: 22, name: "Orang Dalam", type: "card_dalam", price: 0, rent: 0, grid: "1/3/2/4" },
     { id: 23, name: "Sentul City\nBogor", type: "property", price: 220000, rent: 50000, color: "#D62828", grid: "1/4/2/5", icon: "🏎️" },
@@ -97,7 +97,7 @@ const boardSpaces = [
     { id: 28, name: "PT PLN\nPersero", type: "property", price: 150000, rent: 30000, color: "#2E8B57", grid: "1/9/2/10", icon: "⚡" },
     { id: 29, name: "PIK 2\nJakarta", type: "property", price: 280000, rent: 65000, color: "#F4D03F", grid: "1/10/2/11", icon: "🏖️" },
     { id: 30, name: "OTT KPK\n(Masuk Sel)", type: "goto_jail", price: 0, rent: 0, grid: "1/11/2/12", corner: true, icon: "⚖️" },
-    
+
     { id: 31, name: "PPN 12%", type: "tax", price: 150000, rent: 0, grid: "2/11/3/12", icon: "🧾" },
     { id: 32, name: "SCBD\nJakarta", type: "property", price: 300000, rent: 70000, color: "#229954", grid: "3/11/4/12", icon: "👔" },
     { id: 33, name: "Nasib Netizen", type: "card_netizen", price: 0, rent: 0, grid: "4/11/5/12" },
@@ -117,19 +117,19 @@ const colorSets = [
 
 const playerColors = ["#D62828", "#003049", "#FCBF49", "#386641"];
 
-let gameState = { 
-    players: [], 
-    turn: 0, 
-    properties: Array(40).fill(null), 
+let gameState = {
+    players: [],
+    turn: 0,
+    properties: Array(40).fill(null),
     propertyLevels: Array(40).fill(0), // Menyimpan level upgrade properti (0-3)
-    isRolling: false 
+    isRolling: false
 };
 
 function getFinalRent(spaceId, ownerId) {
     let space = boardSpaces[spaceId];
     let baseRent = space.rent;
     let level = gameState.propertyLevels[spaceId] || 0;
-    
+
     // Cek Komplek Warna
     let multiplier = 1;
     for (let set of colorSets) {
@@ -139,7 +139,7 @@ function getFinalRent(spaceId, ownerId) {
             break;
         }
     }
-    
+
     // Formula: (Base Rent * (1 + (level * 1.5))) * Multiplier
     return (baseRent * (1 + (level * 1.5))) * multiplier;
 }
@@ -150,22 +150,22 @@ function updateSpaceVisuals(spaceId) {
     let ownerId = gameState.properties[spaceId];
     let level = gameState.propertyLevels[spaceId] || 0;
     let space = boardSpaces[spaceId];
-    
+
     let oldIcon = spaceEl.querySelector('.owner-icon');
     if (oldIcon) oldIcon.remove();
-    
+
     let header = document.getElementById(`header-${spaceId}`);
-    
+
     if (ownerId !== null) {
         const owner = gameState.players[ownerId];
         if (header) header.style.backgroundColor = owner.color;
-        
+
         const iconEl = document.createElement("div");
         iconEl.className = "owner-icon";
-        
+
         let stars = "";
         for (let i = 0; i < level; i++) stars += "⭐";
-        
+
         iconEl.innerHTML = `<span>${space.icon || "🏠"}</span>${level > 0 ? `<div style="font-size:0.4rem; margin-top:2px; letter-spacing:-1px;">${stars}</div>` : ""}`;
         spaceEl.appendChild(iconEl);
     } else {
@@ -184,12 +184,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderInputs() {
         const count = parseInt(selCount.value);
         dynInputs.innerHTML = "";
-        for(let i = 0; i < count; i++) {
+        for (let i = 0; i < count; i++) {
             const div = document.createElement("div");
             div.className = "input-row";
             div.innerHTML = `
                 <div class="dot" style="background-color: ${playerColors[i]}"></div>
-                <input type="text" id="pname-${i}" placeholder="Nama Pemain ${i+1}" autocomplete="off">
+                <input type="text" id="pname-${i}" placeholder="Nama Pemain ${i + 1}" autocomplete="off">
             `;
             dynInputs.appendChild(div);
         }
@@ -200,9 +200,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById("btn-start-game").addEventListener("click", () => {
         const count = parseInt(selCount.value);
-        for(let i = 0; i < count; i++) {
+        for (let i = 0; i < count; i++) {
             let nameVal = document.getElementById(`pname-${i}`).value.trim();
-            if(!nameVal) nameVal = `Pemain ${i+1}`; 
+            if (!nameVal) nameVal = `Pemain ${i + 1}`;
 
             gameState.players.push({
                 id: i, name: nameVal, color: playerColors[i],
@@ -210,14 +210,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 inJail: false, skipTurn: 0, skip: false, bebasSel: 0, bebasPajak: false
             });
         }
-        
+
         document.querySelector('.global-top-actions').classList.add('hidden');
         document.getElementById("setup-modal").classList.add("hidden");
         document.getElementById("main-game").classList.remove("hidden");
         document.getElementById("guide-section").classList.remove("hidden");
-        
+
         initGameUI();
-        
+
         showModalAsync("🎮 GAME ON!", "Permainan dimulai! Selamat berjuang di Indonesia 😹", "GASKEUN!").then(() => {
             logAction("🎮 Permainan dimulai! Selamat berjuang di Indonesia 😹");
             prepareTurn();
@@ -235,14 +235,14 @@ function initGameUI() {
         div.className = `space ${sp.corner ? 'corner' : ''}`;
         div.style.gridArea = sp.grid;
         div.id = `space-${sp.id}`;
-        
+
         let html = "";
-        if(sp.color && !sp.corner) {
+        if (sp.color && !sp.corner) {
             html += `<div class="space-header" id="header-${sp.id}" style="background-color: ${sp.color}"></div>`;
         }
         html += `<div class="space-body">
                     <div class="space-name">${sp.name.replace(/\n/g, '<br>')}</div>
-                    ${sp.price > 0 ? `<div class="space-price">Rp ${(sp.price/1000)}k</div>` : ''}
+                    ${sp.price > 0 ? `<div class="space-price">Rp ${(sp.price / 1000)}k</div>` : ''}
                  </div>
                  <div class="pawn-container" id="pawn-container-${sp.id}"></div>`;
         div.innerHTML = html;
@@ -260,14 +260,14 @@ function updatePlayersUI() {
         div.className = "player-card";
         div.id = `pcard-${p.id}`;
         div.style.color = p.color;
-        if(!p.active) div.style.opacity = "0.3";
+        if (!p.active) div.style.opacity = "0.3";
 
         const propNames = p.props.length ? p.props.map(id => {
             let lvl = gameState.propertyLevels[id];
             let name = boardSpaces[id].name.replace(/\n/g, ' ');
             return lvl > 0 ? `${name} (Lv${lvl})` : name;
         }).join(', ') : '-';
-        
+
         div.innerHTML = `
             <h3><div class="dot" style="background:${p.color}; border-color:${p.color}; width:12px; height:12px; border-width:2px;"></div> ${p.name}</h3>
             <div class="saldo">Rp ${p.bal.toLocaleString('id-ID')}</div>
@@ -281,9 +281,9 @@ function updatePlayersUI() {
 function renderAllPawns() {
     document.querySelectorAll('.pawn').forEach(e => e.remove());
     gameState.players.forEach(p => {
-        if(!p.active) return;
+        if (!p.active) return;
         const target = document.getElementById(`pawn-container-${p.pos}`);
-        if(target) {
+        if (target) {
             const pawn = document.createElement("div");
             pawn.className = "pawn";
             pawn.id = `pawn-${p.id}`;
@@ -298,15 +298,28 @@ function renderAllPawns() {
 // =========================================
 function openSellMarket(p, debtAmount = 0, ownerToPay = null, successMsg = null) {
     if (p.props.length === 0) {
-        if(debtAmount > 0) declareBankrupt(p, ownerToPay);
-        else showModal("Pasar Aset", "Lu belum punya aset apa-apa buat diurus bro!", [{ text: "Tutup", action: () => {} }]);
+        if (debtAmount > 0) declareBankrupt(p, ownerToPay);
+        else showModal("Pasar Aset", "Lu belum punya aset apa-apa buat diurus bro!", [{ text: "Tutup", action: () => { } }]);
         return;
     }
 
     const modal = document.getElementById("action-modal");
     document.getElementById("modal-title").innerText = "Pasar Aset & Upgrade";
-    
-    let descHtml = debtAmount > 0 ? `<p style="color:#D62828; font-weight:900;">Duit lu kurang Rp ${(debtAmount - p.bal).toLocaleString('id-ID')} buat bayar tagihan!</p>` : `<p>Pilih aset yang mau dijual atau di-upgrade.</p>`;
+
+    let descHtml = "";
+
+    if (debtAmount > 0) {
+        // Cek kalau duitnya udah cukup atau lebih
+        if (p.bal >= debtAmount) {
+            descHtml = `<p style="color:#2E8B57; font-weight:900;">Duit lu udah cukup bos! Silakan klik tombol Bayar Tagihan di bawah.</p>`;
+        } else {
+            // Kalau duit masih kurang, tampilin nominal kurangnya
+            descHtml = `<p style="color:#D62828; font-weight:900;">Duit lu kurang Rp ${(debtAmount - p.bal).toLocaleString('id-ID')} buat bayar tagihan!</p>`;
+        }
+    } else {
+        descHtml = `<p>Pilih aset yang mau dijual atau di-upgrade.</p>`;
+    }
+
     descHtml += `<div class="sell-list" id="sell-list-container"></div>`;
     document.getElementById("modal-desc").innerHTML = descHtml;
 
@@ -318,39 +331,42 @@ function openSellMarket(p, debtAmount = 0, ownerToPay = null, successMsg = null)
             const level = gameState.propertyLevels[propId];
             const upgCost = space.price * 0.5;
             const sellPrice = space.price * 0.5; // Jual ke bank dapet 50% modal awal, level hangus
-            
+
             const item = document.createElement("div");
             item.className = "sell-item";
-            item.innerHTML = `<span><b>${space.name.replace(/\n/g, ' ')}</b> ${level > 0 ? '(Lv '+level+')' : ''}</span> <span style="color:#386641; font-weight:900;">Opsi</span>`;
-            
+            item.innerHTML = `<span><b>${space.name.replace(/\n/g, ' ')}</b> ${level > 0 ? '(Lv ' + level + ')' : ''}</span> <span style="color:#386641; font-weight:900;">Opsi</span>`;
+
             item.onclick = () => {
                 let buttons = [
-                    { text: `Jual ke Bank (Rp ${sellPrice.toLocaleString('id-ID')})`, action: () => {
-                        p.bal += sellPrice;
-                        p.props = p.props.filter(id => id !== propId);
-                        gameState.properties[propId] = null;
-                        gameState.propertyLevels[propId] = 0; // Level hangus
-                        
-                        playSound(sfx.buy);
-                        logAction(`🏷️ ${p.name} menjual ${space.name.replace(/\n/g, ' ')} ke Bank seharga Rp ${sellPrice.toLocaleString('id-ID')}.`);
-                        updateSpaceVisuals(propId);
-                        updatePlayersUI();
-                        
-                        if (p.props.length === 0) {
-                            if (debtAmount > 0 && p.bal < debtAmount) declareBankrupt(p, ownerToPay);
-                            else { modal.classList.add("hidden"); if(debtAmount > 0) checkAndPay(p, debtAmount, ownerToPay, successMsg); }
-                        } else {
-                            openSellMarket(p, debtAmount, ownerToPay, successMsg); 
+                    {
+                        text: `Jual ke Bank (Rp ${sellPrice.toLocaleString('id-ID')})`, action: () => {
+                            p.bal += sellPrice;
+                            p.props = p.props.filter(id => id !== propId);
+                            gameState.properties[propId] = null;
+                            gameState.propertyLevels[propId] = 0; // Level hangus
+
+                            playSound(sfx.buy);
+                            logAction(`🏷️ ${p.name} menjual ${space.name.replace(/\n/g, ' ')} ke Bank seharga Rp ${sellPrice.toLocaleString('id-ID')}.`);
+                            updateSpaceVisuals(propId);
+                            updatePlayersUI();
+
+                            if (p.props.length === 0) {
+                                if (debtAmount > 0 && p.bal < debtAmount) declareBankrupt(p, ownerToPay);
+                                else { modal.classList.add("hidden"); if (debtAmount > 0) checkAndPay(p, debtAmount, ownerToPay, successMsg); }
+                            } else {
+                                openSellMarket(p, debtAmount, ownerToPay, successMsg);
+                            }
                         }
-                    }},
-                    { text: "Nego ke Pemain", action: () => {
-                        let targetOptions = gameState.players.filter(t => t.active && t.id !== p.id).map(t => `<option value="${t.id}">${t.name}</option>`).join('');
-                        if(!targetOptions) {
-                            showModal("Gagal", "Gak ada pemain lain yang aktif buat dinego!", [{ text: "Balik", action: () => openSellMarket(p, debtAmount, ownerToPay, successMsg) }]);
-                            return;
-                        }
-                        
-                        let html = `
+                    },
+                    {
+                        text: "Nego ke Pemain", action: () => {
+                            let targetOptions = gameState.players.filter(t => t.active && t.id !== p.id).map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+                            if (!targetOptions) {
+                                showModal("Gagal", "Gak ada pemain lain yang aktif buat dinego!", [{ text: "Balik", action: () => openSellMarket(p, debtAmount, ownerToPay, successMsg) }]);
+                                return;
+                            }
+
+                            let html = `
                             <div style="margin: 15px 0; text-align: left;">
                                 <label style="font-weight:900;">Pilih Pembeli:</label>
                                 <select id="trade-target" style="width:100%; padding: 8px; border:3px solid #5C4033; border-radius:8px;">${targetOptions}</select>
@@ -358,58 +374,67 @@ function openSellMarket(p, debtAmount = 0, ownerToPay = null, successMsg = null)
                                 <input type="number" id="trade-price" value="${space.price}" style="width:100%; padding: 8px; border:3px solid #5C4033; border-radius:8px;">
                             </div>
                         `;
-                        showModal("Nego Aset", html, [
-                            { text: "Kirim Tawaran", action: () => {
-                                let targetId = parseInt(document.getElementById("trade-target").value);
-                                let price = parseInt(document.getElementById("trade-price").value);
-                                if(isNaN(price) || price < 0) price = 0;
-                                let targetPlayer = gameState.players[targetId];
-                                
-                                showModal("Tawaran Masuk!", `<b>${targetPlayer.name}</b>, lu ditawarin beli <b>${space.name.replace(/\n/g, ' ')} (Lv ${level})</b> dari ${p.name} seharga Rp ${price.toLocaleString('id-ID')}. Deal?`, [
-                                    { text: "Deal! Beli", action: () => {
-                                        if (targetPlayer.bal >= price) {
-                                            targetPlayer.bal -= price;
-                                            p.bal += price;
-                                            p.props = p.props.filter(id => id !== space.id);
-                                            targetPlayer.props.push(space.id);
-                                            gameState.properties[space.id] = targetPlayer.id;
-                                            // Level ditransfer utuh saat trade!
-                                            
-                                            updateSpaceVisuals(space.id);
-                                            playSound(sfx.buy);
-                                            logAction(`🤝 TRADE DEAL! ${targetPlayer.name} mengakuisisi ${space.name.replace(/\n/g, ' ')} dari ${p.name} seharga Rp ${price.toLocaleString('id-ID')}.`);
-                                            updatePlayersUI();
-                                            openSellMarket(p, debtAmount, ownerToPay, successMsg);
-                                        } else {
-                                            showModal("Duit Kurang!", "Duit lu gak cukup bos buat beli ini!", [{ text: "Balik", action: () => openSellMarket(p, debtAmount, ownerToPay, successMsg) }]);
-                                        }
-                                    }},
-                                    { text: "Tolak", secondary: true, action: () => {
-                                        logAction(`❌ ${targetPlayer.name} menolak tawaran aset dari ${p.name}.`);
-                                        openSellMarket(p, debtAmount, ownerToPay, successMsg);
-                                    }}
-                                ]);
-                            }},
-                            { text: "Batal", secondary: true, action: () => openSellMarket(p, debtAmount, ownerToPay, successMsg) }
-                        ]);
-                    }}
+                            showModal("Nego Aset", html, [
+                                {
+                                    text: "Kirim Tawaran", action: () => {
+                                        let targetId = parseInt(document.getElementById("trade-target").value);
+                                        let price = parseInt(document.getElementById("trade-price").value);
+                                        if (isNaN(price) || price < 0) price = 0;
+                                        let targetPlayer = gameState.players[targetId];
+
+                                        showModal("Tawaran Masuk!", `<b>${targetPlayer.name}</b>, lu ditawarin beli <b>${space.name.replace(/\n/g, ' ')} (Lv ${level})</b> dari ${p.name} seharga Rp ${price.toLocaleString('id-ID')}. Deal?`, [
+                                            {
+                                                text: "Deal! Beli", action: () => {
+                                                    if (targetPlayer.bal >= price) {
+                                                        targetPlayer.bal -= price;
+                                                        p.bal += price;
+                                                        p.props = p.props.filter(id => id !== space.id);
+                                                        targetPlayer.props.push(space.id);
+                                                        gameState.properties[space.id] = targetPlayer.id;
+                                                        // Level ditransfer utuh saat trade!
+
+                                                        updateSpaceVisuals(space.id);
+                                                        playSound(sfx.buy);
+                                                        logAction(`🤝 TRADE DEAL! ${targetPlayer.name} mengakuisisi ${space.name.replace(/\n/g, ' ')} dari ${p.name} seharga Rp ${price.toLocaleString('id-ID')}.`);
+                                                        updatePlayersUI();
+                                                        openSellMarket(p, debtAmount, ownerToPay, successMsg);
+                                                    } else {
+                                                        showModal("Duit Kurang!", "Duit lu gak cukup bos buat beli ini!", [{ text: "Balik", action: () => openSellMarket(p, debtAmount, ownerToPay, successMsg) }]);
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                text: "Tolak", secondary: true, action: () => {
+                                                    logAction(`❌ ${targetPlayer.name} menolak tawaran aset dari ${p.name}.`);
+                                                    openSellMarket(p, debtAmount, ownerToPay, successMsg);
+                                                }
+                                            }
+                                        ]);
+                                    }
+                                },
+                                { text: "Batal", secondary: true, action: () => openSellMarket(p, debtAmount, ownerToPay, successMsg) }
+                            ]);
+                        }
+                    }
                 ];
-                
+
                 // Cuma bisa upgrade kalau lagi gak punya hutang dan level belum max
                 if (level < 3 && p.bal >= upgCost && debtAmount === 0) {
-                    buttons.push({ text: `Upgrade Bintang (Rp ${(upgCost/1000)}k)`, action: () => {
-                        p.bal -= upgCost;
-                        gameState.propertyLevels[propId]++;
-                        playSound(sfx.buy);
-                        updateSpaceVisuals(propId);
-                        logAction(`⬆️ ${p.name} meng-upgrade ${space.name.replace(/\n/g, ' ')} ke Level ${gameState.propertyLevels[propId]}!`);
-                        updatePlayersUI();
-                        openSellMarket(p, debtAmount, ownerToPay, successMsg);
-                    }});
+                    buttons.push({
+                        text: `Upgrade Bintang (Rp ${(upgCost / 1000)}k)`, action: () => {
+                            p.bal -= upgCost;
+                            gameState.propertyLevels[propId]++;
+                            playSound(sfx.buy);
+                            updateSpaceVisuals(propId);
+                            logAction(`⬆️ ${p.name} meng-upgrade ${space.name.replace(/\n/g, ' ')} ke Level ${gameState.propertyLevels[propId]}!`);
+                            updatePlayersUI();
+                            openSellMarket(p, debtAmount, ownerToPay, successMsg);
+                        }
+                    });
                 }
 
                 buttons.push({ text: "Kembali", secondary: true, action: () => openSellMarket(p, debtAmount, ownerToPay, successMsg) });
-                
+
                 showModal("Pilih Aksi Properti", `Mau diapain nih <b>${space.name.replace(/\n/g, ' ')}</b>? (Level saat ini: ${level}/3)`, buttons);
             };
             listContainer.appendChild(item);
@@ -419,7 +444,7 @@ function openSellMarket(p, debtAmount = 0, ownerToPay = null, successMsg = null)
     const refreshActions = () => {
         const actions = document.getElementById("modal-actions");
         actions.innerHTML = "";
-        
+
         if (debtAmount > 0) {
             if (p.bal >= debtAmount) {
                 const btnPay = document.createElement("button");
@@ -462,8 +487,8 @@ function checkAndPay(p, amount, ownerToPay, successMsg) {
 async function declareBankrupt(p, ownerToPay) {
     p.active = false;
     logAction(`💀 BANGKRUT! ${p.name} pailit.`);
-    
-    if(ownerToPay && p.bal > 0) {
+
+    if (ownerToPay && p.bal > 0) {
         ownerToPay.bal += p.bal;
     }
     p.bal = 0;
@@ -475,7 +500,7 @@ async function declareBankrupt(p, ownerToPay) {
     });
     p.props = [];
     renderAllPawns();
-    
+
     await showModalAsync("BANGKRUT!", `${p.name} udah miskin total dan disita hartanya. Bye!`, "Nasib");
     await sleep(700);
     proceedToNextTurn();
@@ -498,15 +523,15 @@ function prepareTurn() {
 
     const btnRoll = document.getElementById("btn-roll");
     const btnSell = document.getElementById("btn-sell");
-    
+
     btnRoll.disabled = false;
     btnRoll.classList.remove("hidden");
-    if(p.props.length > 0) btnSell.classList.remove("hidden"); else btnSell.classList.add("hidden");
-    
+    if (p.props.length > 0) btnSell.classList.remove("hidden"); else btnSell.classList.add("hidden");
+
     if (p.skipTurn > 0) {
         logAction(`⏳ ${p.name} sedang dekem di Sel VVIP (Giliran Dilewati).`);
         p.skipTurn = 0;
-        p.inJail = false; 
+        p.inJail = false;
         btnRoll.classList.add("hidden");
         btnSell.classList.add("hidden");
         setTimeout(proceedToNextTurn, 1000);
@@ -523,7 +548,7 @@ function prepareTurn() {
     }
 
     if (p.inJail) {
-        btnRoll.disabled = true; 
+        btnRoll.disabled = true;
         btnSell.classList.add("hidden");
         handleJailEscapeRoutine(p, btnRoll);
         return;
@@ -532,33 +557,39 @@ function prepareTurn() {
 
 function handleJailEscapeRoutine(p, btnRoll) {
     const buttons = [
-        { text: "Bayar Denda (Rp 50rb)", action: () => {
-            checkAndPay(p, 50000, null, `💸 ${p.name} bayar denda KPK Rp 50.000 ke Bank. Bebas!`);
-            p.inJail = false;
-            btnRoll.disabled = false;
-            document.getElementById("btn-sell").classList.remove("hidden");
-        }}
+        {
+            text: "Bayar Denda (Rp 50rb)", action: () => {
+                checkAndPay(p, 50000, null, `💸 ${p.name} bayar denda KPK Rp 50.000 ke Bank. Bebas!`);
+                p.inJail = false;
+                btnRoll.disabled = false;
+                document.getElementById("btn-sell").classList.remove("hidden");
+            }
+        }
     ];
-    
+
     if (p.bebasSel > 0) {
-        buttons.push({ text: "Pake Orang Dalam", action: () => {
-            p.bebasSel--;
-            p.inJail = false;
-            playSound(sfx.card);
-            logAction(`🎟️ ${p.name} pakai koneksi Orang Dalam. Bebas murni!`);
-            updatePlayersUI();
-            btnRoll.disabled = false;
-            document.getElementById("btn-sell").classList.remove("hidden");
-        }});
+        buttons.push({
+            text: "Pake Orang Dalam", action: () => {
+                p.bebasSel--;
+                p.inJail = false;
+                playSound(sfx.card);
+                logAction(`🎟️ ${p.name} pakai koneksi Orang Dalam. Bebas murni!`);
+                updatePlayersUI();
+                btnRoll.disabled = false;
+                document.getElementById("btn-sell").classList.remove("hidden");
+            }
+        });
     }
 
-    buttons.push({ text: "Dekem / Skip", secondary: true, action: () => {
-        p.inJail = true; p.skipTurn = 1;
-        logAction(`🔒 ${p.name} memilih dekem 1 putaran di Sel VVIP.`);
-        document.getElementById("action-modal").classList.add("hidden");
-        btnRoll.classList.add("hidden");
-        setTimeout(proceedToNextTurn, 500);
-    }});
+    buttons.push({
+        text: "Dekem / Skip", secondary: true, action: () => {
+            p.inJail = true; p.skipTurn = 1;
+            logAction(`🔒 ${p.name} memilih dekem 1 putaran di Sel VVIP.`);
+            document.getElementById("action-modal").classList.add("hidden");
+            btnRoll.classList.add("hidden");
+            setTimeout(proceedToNextTurn, 500);
+        }
+    });
 
     showModal("Tahanan Sel VVIP!", `${p.name}, lu mau keluar lewat jalan mana nih?`, buttons);
 }
@@ -569,15 +600,15 @@ function handleJailEscapeRoutine(p, btnRoll) {
 async function handleDiceRollAsync() {
     if (gameState.isRolling) return;
     gameState.isRolling = true;
-    
+
     const btnRoll = document.getElementById("btn-roll");
-    document.getElementById("btn-sell").classList.add("hidden"); 
+    document.getElementById("btn-sell").classList.add("hidden");
     btnRoll.disabled = true;
-    
+
     const p = gameState.players[gameState.turn];
     const el1 = document.getElementById("dice-1");
     const el2 = document.getElementById("dice-2");
-    const faces = ['⚀','⚁','⚂','⚃','⚄','⚅'];
+    const faces = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
 
     playSound(sfx.dice);
     el1.classList.add("rolling");
@@ -596,12 +627,12 @@ async function handleDiceRollAsync() {
     const d1 = Math.floor(Math.random() * 6) + 1;
     const d2 = Math.floor(Math.random() * 6) + 1;
     const total = d1 + d2;
-    
-    el1.innerText = faces[d1-1];
-    el2.innerText = faces[d2-1];
+
+    el1.innerText = faces[d1 - 1];
+    el2.innerText = faces[d2 - 1];
 
     logAction(`🎲 ${p.name} dapat angka ${d1} & ${d2} (Maju ${total}).`);
-    
+
     await sleep(300);
     await movePawnSequential(p, total);
 }
@@ -616,15 +647,15 @@ async function movePawnSequential(p, steps) {
             logAction(`💰 ${p.name} lewat START, cair Bansos +Rp 200.000!`);
             updatePlayersUI();
         }
-        
+
         const targetContainer = document.getElementById(`pawn-container-${p.pos}`);
         const pawnEl = document.getElementById(`pawn-${p.id}`);
-        if(targetContainer && pawnEl) targetContainer.appendChild(pawnEl);
-        
+        if (targetContainer && pawnEl) targetContainer.appendChild(pawnEl);
+
         playSound(sfx.step);
-        await sleep(200); 
+        await sleep(200);
     }
-    
+
     await sleep(200);
     executeSpaceAction(p, boardSpaces[p.pos]);
 }
@@ -643,7 +674,7 @@ function startDiscountAuction(space) {
         descHtml += `<p style="font-size:0.85rem; color:#666;">Harga Asli: Rp ${space.price.toLocaleString('id-ID')}</p>`;
         descHtml += `<h2 style="color:#D62828; margin: 15px 0;">Bid: Rp ${currentBid.toLocaleString('id-ID')}</h2>`;
 
-        if(highestBidder) {
+        if (highestBidder) {
             descHtml += `<p style="margin-bottom:15px;">Penawar Tertinggi: <b>${highestBidder.name}</b></p>`;
         } else {
             descHtml += `<p style="margin-bottom:15px; color:#386641; font-weight:bold;">🔥 Dibuka dari harga diskon 30%!</p>`;
@@ -656,29 +687,33 @@ function startDiscountAuction(space) {
             let bidAmount = highestBidder ? currentBid + 10000 : currentBid;
 
             if (p.bal >= bidAmount && highestBidder?.id !== p.id) {
-                buttons.push({ text: `${p.name} Bid (Rp ${bidAmount/1000}k)`, keepOpen: true, action: () => {
-                    currentBid = bidAmount;
-                    highestBidder = p;
-                    playSound(sfx.step);
-                    renderAuction();
-                }});
+                buttons.push({
+                    text: `${p.name} Bid (Rp ${bidAmount / 1000}k)`, keepOpen: true, action: () => {
+                        currentBid = bidAmount;
+                        highestBidder = p;
+                        playSound(sfx.step);
+                        renderAuction();
+                    }
+                });
             }
         });
 
-        buttons.push({ text: highestBidder ? "Bungkus Lelang!" : "Batal (Tetap Kosong)", secondary: true, keepOpen: false, action: () => {
-            if (highestBidder) {
-                highestBidder.bal -= currentBid;
-                highestBidder.props.push(space.id);
-                gameState.properties[space.id] = highestBidder.id;
-                gameState.propertyLevels[space.id] = 0; // Pastikan level 0 (gak bawa level)
+        buttons.push({
+            text: highestBidder ? "Bungkus Lelang!" : "Batal (Tetap Kosong)", secondary: true, keepOpen: false, action: () => {
+                if (highestBidder) {
+                    highestBidder.bal -= currentBid;
+                    highestBidder.props.push(space.id);
+                    gameState.properties[space.id] = highestBidder.id;
+                    gameState.propertyLevels[space.id] = 0; // Pastikan level 0 (gak bawa level)
 
-                updateSpaceVisuals(space.id);
-                playSound(sfx.buy);
-                finishAction(`🔨 LELANG: ${highestBidder.name} memenangkan ${space.name.replace(/\n/g, ' ')} seharga Rp ${currentBid.toLocaleString('id-ID')}!`);
-            } else {
-                finishAction(`Lelang dibatalkan, properti ${space.name.replace(/\n/g, ' ')} tetap kosong.`);
+                    updateSpaceVisuals(space.id);
+                    playSound(sfx.buy);
+                    finishAction(`🔨 LELANG: ${highestBidder.name} memenangkan ${space.name.replace(/\n/g, ' ')} seharga Rp ${currentBid.toLocaleString('id-ID')}!`);
+                } else {
+                    finishAction(`Lelang dibatalkan, properti ${space.name.replace(/\n/g, ' ')} tetap kosong.`);
+                }
             }
-        }});
+        });
 
         showModal("Lelang Diskon!", descHtml, buttons);
     }
@@ -692,33 +727,37 @@ function startDiscountAuction(space) {
 // =========================================
 function executeSpaceAction(p, space) {
     const spaceName = space.name.replace(/\n/g, ' ');
-    
+
     if (space.type === "property") {
         const ownerId = gameState.properties[p.pos];
-        
+
         // Lapak Kosong (Memicu Lelang Diskon kalau di-skip)
         if (ownerId === null) {
             if (p.bal >= space.price) {
                 showModal("Lapak Kosong!", `Beli <b>${spaceName}</b>?<br>Harga: Rp ${space.price.toLocaleString('id-ID')}`, [
-                    { text: "Beli Cuy", action: () => {
-                        p.bal -= space.price; 
-                        p.props.push(p.pos);
-                        gameState.properties[p.pos] = p.id;
-                        updateSpaceVisuals(p.pos);
-                        playSound(sfx.buy);
-                        finishAction(`🏠 ${p.name} resmi mengakuisisi ${spaceName}.`);
-                    }},
-                    { text: "Skip (Lelang)", secondary: true, action: () => {
-                        // Buka Lelang kalau di-skip
-                        startDiscountAuction(space);
-                    }}
+                    {
+                        text: "Beli Cuy", action: () => {
+                            p.bal -= space.price;
+                            p.props.push(p.pos);
+                            gameState.properties[p.pos] = p.id;
+                            updateSpaceVisuals(p.pos);
+                            playSound(sfx.buy);
+                            finishAction(`🏠 ${p.name} resmi mengakuisisi ${spaceName}.`);
+                        }
+                    },
+                    {
+                        text: "Skip (Lelang)", secondary: true, action: () => {
+                            // Buka Lelang kalau di-skip
+                            startDiscountAuction(space);
+                        }
+                    }
                 ]);
             } else {
                 showModal("Duit Kurang!", `Duit lu gak cukup buat beli <b>${spaceName}</b>. Aset ini akan otomatis masuk Lelang Diskon buat diperebutkan!`, [
                     { text: "Buka Lelang", action: () => startDiscountAuction(space) }
                 ]);
             }
-        } 
+        }
         // Punya Orang Lain
         else if (ownerId !== p.id) {
             const owner = gameState.players[ownerId];
@@ -727,39 +766,42 @@ function executeSpaceAction(p, space) {
             } else {
                 let finalRent = getFinalRent(space.id, owner.id);
                 let level = gameState.propertyLevels[space.id];
-                
+
                 let msgLog = `💸 ${p.name} bayar sewa (Lv ${level}) Rp ${finalRent.toLocaleString('id-ID')} ke ${owner.name}.`;
-                
+
                 // Cek apakah dia pegang komplek full buat message custom
                 let holdsColorSet = colorSets.find(s => s.includes(space.id))?.every(id => gameState.properties[id] === owner.id);
                 if (holdsColorSet) {
                     msgLog = `🎨 KOMPLEK WARNA! ${p.name} kena tarif 2x lipat (Lv ${level}) jadi Rp ${finalRent.toLocaleString('id-ID')} ke ${owner.name}.`;
                 }
-                
+
                 checkAndPay(p, finalRent, owner, msgLog);
             }
-        } 
+        }
         // Punya Sendiri (Bisa Upgrade)
         else {
             let level = gameState.propertyLevels[p.pos];
-            let upgCost = space.price * 0.5;
-            
+            let costMultiplier = (level === 0) ? 0.5 : (level === 1) ? 1.0 : 1.5;
+            let upgCost = space.price * costMultiplier;
+
             if (level < 3 && p.bal >= upgCost) {
                 showModal("Lapak Sendiri", `Lu lagi istirahat di ${spaceName} (Lv ${level}). Mau sekalian Upgrade Bintang biar sewa makin meroket?<br>Biaya Upgrade: Rp ${upgCost.toLocaleString('id-ID')}`, [
-                    { text: `Upgrade (Rp ${upgCost/1000}k)`, action: () => {
-                        p.bal -= upgCost;
-                        gameState.propertyLevels[p.pos]++;
-                        playSound(sfx.buy);
-                        updateSpaceVisuals(p.pos);
-                        finishAction(`⬆️ ${p.name} meng-upgrade ${spaceName} ke Level ${gameState.propertyLevels[p.pos]}!`);
-                    }},
+                    {
+                        text: `Upgrade (Rp ${upgCost / 1000}k)`, action: () => {
+                            p.bal -= upgCost;
+                            gameState.propertyLevels[p.pos]++;
+                            playSound(sfx.buy);
+                            updateSpaceVisuals(p.pos);
+                            finishAction(`⬆️ ${p.name} meng-upgrade ${spaceName} ke Level ${gameState.propertyLevels[p.pos]}!`);
+                        }
+                    },
                     { text: "Santai Aja", secondary: true, action: () => finishAction(`Santai sejenak di aset sendiri (${spaceName}).`) }
                 ]);
             } else {
                 finishAction(`Santai sejenak di aset sendiri (${spaceName}).`);
             }
         }
-    } 
+    }
     // Pajak Murni (Bank Sink)
     else if (space.type === "tax") {
         if (p.bebasPajak) {
@@ -773,12 +815,14 @@ function executeSpaceAction(p, space) {
     else if (space.type === "goto_jail") {
         playSound(sfx.jail);
         showModal("🚨 Kena OTT KPK! 🚨", "Aset lu diperiksa! Langsung diseret ke Sel VVIP tanpa ampun.", [
-            { text: "Borgol Saya", action: async () => {
-                p.pos = 10; p.inJail = true; p.skipTurn = 0;
-                const targetContainer = document.getElementById(`pawn-container-10`);
-                targetContainer.appendChild(document.getElementById(`pawn-${p.id}`));
-                finishAction(`🚨 ${p.name} resmi pakai rompi oranye di Sel VVIP!`);
-            }}
+            {
+                text: "Borgol Saya", action: async () => {
+                    p.pos = 10; p.inJail = true; p.skipTurn = 0;
+                    const targetContainer = document.getElementById(`pawn-container-10`);
+                    targetContainer.appendChild(document.getElementById(`pawn-${p.id}`));
+                    finishAction(`🚨 ${p.name} resmi pakai rompi oranye di Sel VVIP!`);
+                }
+            }
         ]);
     }
     // Kartu Kesempatan
@@ -787,40 +831,42 @@ function executeSpaceAction(p, space) {
         const isNetizen = space.type === "card_netizen";
         const deck = isNetizen ? netizenCards : orangDalamCards;
         const card = deck[Math.floor(Math.random() * deck.length)];
-        
+
         showModal(isNetizen ? "Kartu Nasib Netizen" : "Kartu Orang Dalam", `<i>"${card.text}"</i>`, [
-            { text: "OK Ngerti", action: async () => {
-                let cardTitle = card.text.split(':')[0];
-                let cardTypeStr = isNetizen ? "Netizen" : "Orang Dalam";
-                let msg = `🃏 ${p.name} dapet Kartu ${cardTypeStr}: '${cardTitle}'`;
-                
-                if (card.type === "money") {
-                    if (card.value < 0) {
-                        msg += ` (Rugi Rp ${Math.abs(card.value).toLocaleString('id-ID')})`;
-                        checkAndPay(p, Math.abs(card.value), null, msg);
-                        return;
+            {
+                text: "OK Ngerti", action: async () => {
+                    let cardTitle = card.text.split(':')[0];
+                    let cardTypeStr = isNetizen ? "Netizen" : "Orang Dalam";
+                    let msg = `🃏 ${p.name} dapet Kartu ${cardTypeStr}: '${cardTitle}'`;
+
+                    if (card.type === "money") {
+                        if (card.value < 0) {
+                            msg += ` (Rugi Rp ${Math.abs(card.value).toLocaleString('id-ID')})`;
+                            checkAndPay(p, Math.abs(card.value), null, msg);
+                            return;
+                        } else {
+                            p.bal += card.value;
+                            playSound(sfx.buy);
+                            msg += ` (+Rp ${card.value.toLocaleString('id-ID')})`;
+                        }
+                    }
+
+                    if (card.type === "skip") p.skip = true;
+                    if (card.type === "bebas_sel") p.bebasSel++;
+                    if (card.type === "bebas_pajak") p.bebasPajak = true;
+
+                    updatePlayersUI();
+
+                    if (card.type === "move") {
+                        logAction(msg);
+                        await movePawnSequential(p, card.value);
                     } else {
-                        p.bal += card.value;
-                        playSound(sfx.buy);
-                        msg += ` (+Rp ${card.value.toLocaleString('id-ID')})`;
+                        finishAction(msg);
                     }
                 }
-                
-                if (card.type === "skip") p.skip = true;
-                if (card.type === "bebas_sel") p.bebasSel++;
-                if (card.type === "bebas_pajak") p.bebasPajak = true;
-                
-                updatePlayersUI();
-                
-                if (card.type === "move") {
-                    logAction(msg);
-                    await movePawnSequential(p, card.value);
-                } else {
-                    finishAction(msg);
-                }
-            }}
+            }
         ]);
-    } 
+    }
     // Bebas (Start, Jail Visit, Rest Area)
     else {
         if (space.id === 10) finishAction(`👀 ${p.name} cuma mampir besuk tahanan di Sel VVIP.`);
@@ -834,13 +880,13 @@ function executeSpaceAction(p, space) {
 async function finishAction(logMessage) {
     logAction(logMessage);
     updatePlayersUI();
-    await sleep(700); 
+    await sleep(700);
     proceedToNextTurn();
 }
 
 function proceedToNextTurn() {
     const activePlayers = gameState.players.filter(p => p.active);
-    
+
     if (activePlayers.length === 1) {
         showModal("🏆 GAME OVER! 🏆", `Satu-satunya sultan yang tersisa adalah <b>${activePlayers[0].name}</b>!`, [
             { text: "Main Ulang", action: () => location.reload() }
@@ -855,7 +901,7 @@ function proceedToNextTurn() {
     gameState.isRolling = false;
     document.getElementById("btn-roll").classList.add("hidden");
     document.getElementById("btn-sell").classList.add("hidden");
-    
+
     prepareTurn();
 }
 
@@ -866,10 +912,10 @@ function showModal(title, desc, buttons) {
     const modal = document.getElementById("action-modal");
     document.getElementById("modal-title").innerText = title;
     document.getElementById("modal-desc").innerHTML = desc;
-    
+
     const actions = document.getElementById("modal-actions");
     actions.innerHTML = "";
-    
+
     buttons.forEach(b => {
         const btn = document.createElement("button");
         btn.innerText = b.text;
@@ -880,7 +926,7 @@ function showModal(title, desc, buttons) {
         };
         actions.appendChild(btn);
     });
-    
+
     modal.classList.remove("hidden");
 }
 
